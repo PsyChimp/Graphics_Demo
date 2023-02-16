@@ -1,0 +1,52 @@
+#version 150
+uniform sampler2D tex;
+uniform sampler2DArray tex2;
+
+struct Light{
+     vec3 position;
+     vec3 color;
+};
+uniform Light light;
+uniform vec3 camPos;
+uniform float lighting;
+uniform float alpha;
+uniform float instance;
+in vec2 v_texcoord;
+in vec3 v_normal;
+in vec3 v_worldPos;
+in float index;
+//flat in int gl_InstanceID;
+out vec4 color;
+
+void main(){
+    if (instance==1.0){
+		color = texture(tex2,vec3(v_texcoord,index));
+		
+		
+    }
+    if (instance==0.0){
+		color = texture(tex,v_texcoord);
+    }
+    
+    if(lighting==1.0){
+		vec3 N = normalize(v_normal);
+		vec3 total_dp = vec3(0.0);
+		vec3 L = normalize(light.position - v_worldPos);
+		float dp = dot(N,L);
+		dp = max( dp , 0.0 );
+		vec3 R = 2*dot(N,L)*(N-L);
+		vec3 V = normalize(camPos-v_worldPos);
+		float sStr=dot(V,R)*0.5;
+    	color.rgb=(dp*color.rgb)+(sStr*light.color);
+		color.a=alpha;
+    }
+	
+	
+    if (color.a==0){
+		discard;
+    }
+	
+	
+	
+    //color.rgb=N.xyz;
+}
